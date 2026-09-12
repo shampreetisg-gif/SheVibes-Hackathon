@@ -10,6 +10,16 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: dashboard
+    description: Dashboard overview operations
+  - name: announcements
+    description: Verified campus announcements
+  - name: campus
+    description: Clubs, calendar, deadlines, opportunities, and assignments
+  - name: issues
+    description: Campus issue reporting
+  - name: auth
+    description: Demo authentication
 paths:
   /healthz:
     get:
@@ -24,6 +34,157 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /demo-auth:
+    post:
+      operationId: demoAuth
+      tags: [auth]
+      summary: Start a demo session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DemoAuthInput"
+      responses:
+        "200":
+          description: Demo session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoUser"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get dashboard overview
+      responses:
+        "200":
+          description: Dashboard overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+  /announcements:
+    get:
+      operationId: getAnnouncements
+      tags: [announcements]
+      summary: List verified announcements
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Announcements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Announcement"
+  /clubs:
+    get:
+      operationId: getClubs
+      tags: [campus]
+      summary: List clubs and societies
+      responses:
+        "200":
+          description: Clubs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Club"
+  /events:
+    get:
+      operationId: getEvents
+      tags: [campus]
+      summary: List upcoming campus events
+      responses:
+        "200":
+          description: Events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CampusEvent"
+  /deadlines:
+    get:
+      operationId: getDeadlines
+      tags: [campus]
+      summary: List academic deadlines
+      responses:
+        "200":
+          description: Deadlines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Deadline"
+  /opportunities:
+    get:
+      operationId: getOpportunities
+      tags: [campus]
+      summary: List student opportunities
+      responses:
+        "200":
+          description: Opportunities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Opportunity"
+  /assignments:
+    get:
+      operationId: getAssignments
+      tags: [campus]
+      summary: List assignments
+      responses:
+        "200":
+          description: Assignments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Assignment"
+  /issues:
+    get:
+      operationId: getIssues
+      tags: [issues]
+      summary: List reported campus issues
+      responses:
+        "200":
+          description: Issues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Issue"
+    post:
+      operationId: createIssue
+      tags: [issues]
+      summary: Report a campus issue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IssueInput"
+      responses:
+        "201":
+          description: Created issue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Issue"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +194,135 @@ components:
           type: string
       required:
         - status
+    DemoAuthInput:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [Student, Faculty, Club President, Club Vice President, Administrator]
+      required: [role]
+    DemoUser:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string }
+        initials: { type: string }
+      required: [id, name, email, role, initials]
+    Dashboard:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/DemoUser"
+        stats:
+          type: array
+          items:
+            $ref: "#/components/schemas/DashboardStat"
+        announcements:
+          type: array
+          items:
+            $ref: "#/components/schemas/Announcement"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/CampusEvent"
+        deadlines:
+          type: array
+          items:
+            $ref: "#/components/schemas/Deadline"
+      required: [user, stats, announcements, events, deadlines]
+    DashboardStat:
+      type: object
+      properties:
+        label: { type: string }
+        value: { type: string }
+        detail: { type: string }
+        tone: { type: string }
+      required: [label, value, detail, tone]
+    Announcement:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        summary: { type: string }
+        category: { type: string }
+        publishedAt: { type: string }
+        source: { type: string }
+        isPinned: { type: boolean }
+      required: [id, title, summary, category, publishedAt, source, isPinned]
+    Club:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        category: { type: string }
+        description: { type: string }
+        members: { type: integer }
+        nextMeeting: { type: string }
+        accent: { type: string }
+      required: [id, name, category, description, members, nextMeeting, accent]
+    CampusEvent:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        date: { type: string }
+        time: { type: string }
+        location: { type: string }
+        category: { type: string }
+        color: { type: string }
+      required: [id, title, date, time, location, category, color]
+    Deadline:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        course: { type: string }
+        dueDate: { type: string }
+        dueLabel: { type: string }
+        status: { type: string }
+        priority: { type: string }
+      required: [id, title, course, dueDate, dueLabel, status, priority]
+    Opportunity:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        organization: { type: string }
+        type: { type: string }
+        deadline: { type: string }
+        description: { type: string }
+        tag: { type: string }
+      required: [id, title, organization, type, deadline, description, tag]
+    Assignment:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        course: { type: string }
+        dueDate: { type: string }
+        progress: { type: integer }
+        status: { type: string }
+      required: [id, title, course, dueDate, progress, status]
+    Issue:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        category: { type: string }
+        location: { type: string }
+        description: { type: string }
+        status: { type: string }
+        createdAt: { type: string }
+        reportedBy: { type: string }
+      required: [id, title, category, location, description, status, createdAt, reportedBy]
+    IssueInput:
+      type: object
+      properties:
+        title: { type: string, minLength: 2 }
+        category: { type: string }
+        location: { type: string }
+        description: { type: string, minLength: 5 }
+      required: [title, category, location, description]
 

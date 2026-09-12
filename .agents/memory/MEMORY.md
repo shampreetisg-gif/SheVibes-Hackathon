@@ -1,0 +1,1 @@
+- [API client DOM iterable types](api-client-dom-iterable.md) — generated browser client headers helpers need `dom.iterable` in TypeScript libs.

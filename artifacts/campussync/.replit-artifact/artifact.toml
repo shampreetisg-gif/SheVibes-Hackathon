@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "CampusSync"
+description = "An AI-powered campus information and student engagement platform that brings verified announcements, deadlines, events, clubs, opportunities, assignments, and issue reporting into one organized place for college communities."
+version = "1.0.0"
+id = "artifacts/campussync"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24409
+
+[services.development]
+run = "pnpm --filter @workspace/campussync run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/campussync", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/campussync/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24409"
+BASE_PATH = "/"

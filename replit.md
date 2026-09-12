@@ -1,6 +1,6 @@
-# [Project name]
+# CampusSync
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+CampusSync is a full-stack campus information and student engagement platform with verified announcements, academic planning, campus events, opportunities, clubs, issue reporting, and a staged AI assistant experience.
 
 ## Run & Operate
 
@@ -22,23 +22,34 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/campussync/src/App.tsx` — responsive application shell, routes, demo role session, and page UI.
+- `artifacts/campussync/src/index.css` — CampusSync visual system and responsive styling.
+- `lib/api-spec/openapi.yaml` — source of truth for the CampusSync API contract.
+- `artifacts/api-server/src/routes/campus.ts` — API handlers backed by PostgreSQL.
+- `lib/db/src/schema/campus.ts` — PostgreSQL tables and insert schema for campus data.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The first stage uses a demo role selector rather than real authentication or college credentials.
+- The frontend consumes generated React Query hooks from the OpenAPI contract instead of hand-written fetch types.
+- Campus content is seeded in the development database so the initial UI demonstrates real persisted data.
+- Issue reports are persisted and immediately refreshed in the issues page after submission; the AI assistant is explicitly staged until its backend behavior is defined.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Dashboard overview with announcement, deadline, opportunity, issue, event, and profile context.
+- Searchable announcements, club directory, event calendar, deadlines, opportunities, and assignments views.
+- Campus issue list with a working report form and persisted submissions.
+- Responsive desktop/mobile navigation with a demo Student, Faculty, Club President, Club Vice President, and Administrator role selector.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Build incrementally and keep unfinished major features honest rather than making non-functional buttons appear complete.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- The API server is mounted at `/api`; the frontend uses the generated client and shared proxy rather than a Vite proxy.
+- Artifact workflows provide `PORT` and `BASE_PATH`; run the managed workflow for preview instead of starting the frontend directly.
 
 ## Pointers
 
