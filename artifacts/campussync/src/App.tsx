@@ -53,6 +53,20 @@ const roleProfiles: Record<Role, { name: string; email: string; initials: string
   Administrator: { name: 'Nisha Iyer', email: 'nisha.iyer@demo.campussync', initials: 'NI' },
 };
 
+function readStoredIds(key: string) {
+  if (typeof window === 'undefined') return new Set<number>();
+  try {
+    const stored = JSON.parse(window.localStorage.getItem(key) ?? '[]');
+    return new Set<number>(Array.isArray(stored) ? stored.filter((value): value is number => typeof value === 'number') : []);
+  } catch {
+    return new Set<number>();
+  }
+}
+
+function writeStoredIds(key: string, ids: Set<number>) {
+  window.localStorage.setItem(key, JSON.stringify(Array.from(ids)));
+}
+
 const navItems = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
   { href: '/announcements', label: 'Announcements', icon: Megaphone },
@@ -123,12 +137,17 @@ function QueryState({
 function Shell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const demoAuth = useDemoAuth();
-  const [role, setRole] = useState<Role>('Student');
+  const [role, setRole] = useState<Role>(() => {
+    if (typeof window === 'undefined') return 'Student';
+    const stored = window.localStorage.getItem('campussync-demo-role') as Role | null;
+    return stored && roleOptions.includes(stored) ? stored : 'Student';
+  });
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const profile = demoAuth.data ?? roleProfiles[role];
 
   const updateRole = (nextRole: Role) => {
     setRole(nextRole);
+    window.localStorage.setItem('campussync-demo-role', nextRole);
     demoAuth.mutate({ data: { role: nextRole } });
   };
 
@@ -289,22 +308,42 @@ function AnnouncementsPage() {
 function ClubsPage() {
   const clubs = useGetClubs();
   const [filter, setFilter] = useState('All');
+  const [interestedClubs, setInterestedClubs] = useState(() => readStoredIds('campussync-interested-clubs'));
   const items = clubs.data ?? [];
   const categories = ['All', ...Array.from(new Set(items.map((club) => club.category)))];
   const filtered = filter === 'All' ? items : items.filter((club) => club.category === filter);
+  const toggleInterest = (id: number) => {
+    setInterestedClubs((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      writeStoredIds('campussync-interested-clubs', next);
+      return next;
+    });
+  };
   return <PageFrame eyebrow="Find your people" title="Clubs & societies" subtitle="Small rooms, big interests, and the quickest way to make campus feel like yours." action={<div className="flex flex-wrap gap-2">{categories.slice(0, 4).map((category) => <button type="button" key={category} className={`badge ${filter === category ? 'badge-warm' : 'badge-ink'}`} onClick={() => setFilter(category)} data-testid={`button-filter-club-${category.toLowerCase().replaceAll(' ', '-')}`}>{category}</button>)}</div>}>
     <QueryState loading={clubs.isLoading} error={clubs.isError} empty={!filtered.length} onRetry={() => clubs.refetch()}>
-      <div className="grid gap-4 md:grid-cols-2">{filtered.map((club, index) => <article key={club.id} className={`surface surface-hover stagger-in delay-${Math.min(index + 1, 4)} overflow-hidden p-6`} data-testid={`card-club-${club.id}`}><div className="mb-5 flex items-start justify-between"><div className="h-11 w-11 rounded-2xl" style={{ background: club.accent || 'hsl(39 96% 62%)' }} /><span className="badge badge-ink">{club.category}</span></div><h2 className="font-display text-2xl font-semibold">{club.name}</h2><p className="mt-2 min-h-12 text-sm leading-6 text-[hsl(var(--muted-foreground))]">{club.description}</p><div className="mt-6 grid grid-cols-2 gap-3 border-t border-[hsl(var(--border))] pt-4"><div><p className="eyebrow mb-1">Community</p><p className="text-sm font-bold">{club.members} members</p></div><div><p className="eyebrow mb-1">Next meeting</p><p className="text-sm font-bold">{club.nextMeeting}</p></div></div><button type="button" className="action-btn action-secondary mt-5 w-full" onClick={() => window.alert(`Interest noted for ${club.name}`)} data-testid={`button-join-club-${club.id}`}>I’m interested <ArrowRight size={14} /></button></article>)}</div>
+       <div className="grid gap-4 md:grid-cols-2">{filtered.map((club, index) => <article key={club.id} className={`surface surface-hover stagger-in delay-${Math.min(index + 1, 4)} overflow-hidden p-6`} data-testid={`card-club-${club.id}`}><div className="mb-5 flex items-start justify-between"><div className="h-11 w-11 rounded-2xl" style={{ background: club.accent || 'hsl(39 96% 62%)' }} /><span className="badge badge-ink">{club.category}</span></div><h2 className="font-display text-2xl font-semibold">{club.name}</h2><p className="mt-2 min-h-12 text-sm leading-6 text-[hsl(var(--muted-foreground))]">{club.description}</p><div className="mt-6 grid grid-cols-2 gap-3 border-t border-[hsl(var(--border))] pt-4"><div><p className="eyebrow mb-1">Community</p><p className="text-sm font-bold">{club.members} members</p></div><div><p className="eyebrow mb-1">Next meeting</p><p className="text-sm font-bold">{club.nextMeeting}</p></div></div><button type="button" className="action-btn action-secondary mt-5 w-full" onClick={() => toggleInterest(club.id)} data-testid={`button-join-club-${club.id}`}>{interestedClubs.has(club.id) ? 'Interested' : 'I’m interested'} <ArrowRight size={14} /></button></article>)}</div>
     </QueryState>
   </PageFrame>;
 }
 
 function CalendarPage() {
   const events = useGetEvents();
+  const [plannedEvents, setPlannedEvents] = useState(() => readStoredIds('campussync-planned-events'));
   const items = events.data ?? [];
+  const togglePlan = (id: number) => {
+    setPlannedEvents((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      writeStoredIds('campussync-planned-events', next);
+      return next;
+    });
+  };
   return <PageFrame eyebrow="Show up for something" title="Campus calendar" subtitle="The talks, gatherings, and rituals that make a week on campus feel full." action={<Link href="/clubs" className="action-btn action-secondary" data-testid="link-calendar-clubs">Explore clubs <Users size={15} /></Link>}>
     <QueryState loading={events.isLoading} error={events.isError} empty={!items.length} onRetry={() => events.refetch()}>
-      <div className="grid gap-4 lg:grid-cols-2">{items.map((event, index) => <article key={event.id} className={`surface surface-hover stagger-in delay-${Math.min(index + 1, 4)} flex gap-4 p-5 md:p-6`} data-testid={`card-event-${event.id}`}><div className="calendar-strip shrink-0" style={{ borderTop: `3px solid ${event.color || 'hsl(39 96% 62%)'}` }}><span className="font-mono text-[9px] uppercase opacity-70">{formatDate(event.date).split(' ')[0]}</span><strong>{new Date(event.date).getDate() || '—'}</strong></div><div className="min-w-0 flex-1"><span className="badge badge-coral">{event.category}</span><h2 className="mt-2 font-display text-2xl font-semibold">{event.title}</h2><div className="mt-4 space-y-2 text-xs text-[hsl(var(--muted-foreground))]"><p className="flex items-center gap-2"><Clock3 size={14} /> {event.time}</p><p className="flex items-center gap-2"><MapPin size={14} /> {event.location}</p></div><button type="button" className="action-btn action-quiet mt-5" onClick={() => window.alert(`Added ${event.title} to your plan`)} data-testid={`button-save-event-${event.id}`}>Save to my plan <Check size={14} /></button></div></article>)}</div>
+       <div className="grid gap-4 lg:grid-cols-2">{items.map((event, index) => <article key={event.id} className={`surface surface-hover stagger-in delay-${Math.min(index + 1, 4)} flex gap-4 p-5 md:p-6`} data-testid={`card-event-${event.id}`}><div className="calendar-strip shrink-0" style={{ borderTop: `3px solid ${event.color || 'hsl(39 96% 62%)'}` }}><span className="font-mono text-[9px] uppercase opacity-70">{formatDate(event.date).split(' ')[0]}</span><strong>{new Date(event.date).getDate() || '—'}</strong></div><div className="min-w-0 flex-1"><span className="badge badge-coral">{event.category}</span><h2 className="mt-2 font-display text-2xl font-semibold">{event.title}</h2><div className="mt-4 space-y-2 text-xs text-[hsl(var(--muted-foreground))]"><p className="flex items-center gap-2"><Clock3 size={14} /> {event.time}</p><p className="flex items-center gap-2"><MapPin size={14} /> {event.location}</p></div><button type="button" className="action-btn action-quiet mt-5" onClick={() => togglePlan(event.id)} data-testid={`button-save-event-${event.id}`}>{plannedEvents.has(event.id) ? 'Saved to my plan' : 'Save to my plan'} <Check size={14} /></button></div></article>)}</div>
     </QueryState>
   </PageFrame>;
 }
@@ -321,10 +360,20 @@ function DeadlinesPage() {
 
 function OpportunitiesPage() {
   const opportunities = useGetOpportunities();
+  const [savedOpportunities, setSavedOpportunities] = useState(() => readStoredIds('campussync-saved-opportunities'));
   const items = opportunities.data ?? [];
+  const toggleSaved = (id: number) => {
+    setSavedOpportunities((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      writeStoredIds('campussync-saved-opportunities', next);
+      return next;
+    });
+  };
   return <PageFrame eyebrow="A door, slightly open" title="Opportunities" subtitle="Internships, scholarships, and campus roles with enough detail to make a real decision." action={<span className="badge badge-warm"><Sparkles size={12} /> Curated for students</span>}>
     <QueryState loading={opportunities.isLoading} error={opportunities.isError} empty={!items.length} onRetry={() => opportunities.refetch()}>
-      <div className="space-y-4">{items.map((item, index) => <article key={item.id} className={`surface surface-hover stagger-in delay-${Math.min(index + 1, 4)} p-5 md:p-7`} data-testid={`card-opportunity-${item.id}`}><div className="flex flex-col justify-between gap-4 md:flex-row"><div className="max-w-3xl"><div className="mb-3 flex flex-wrap gap-2"><span className="badge badge-cool">{item.type}</span><span className="badge badge-ink">{item.tag}</span></div><h2 className="font-display text-2xl font-semibold">{item.title}</h2><p className="mt-1 font-mono text-[10px] uppercase tracking-wide text-[hsl(var(--muted-foreground))]">{item.organization}</p><p className="mt-4 text-sm leading-6 text-[hsl(var(--muted-foreground))]">{item.description}</p></div><div className="flex shrink-0 flex-col items-start gap-3 md:items-end"><div className="text-left md:text-right"><p className="eyebrow mb-1">Apply by</p><p className="font-display text-xl font-semibold">{formatDate(item.deadline)}</p></div><button type="button" className="action-btn action-primary" onClick={() => window.alert(`Saved ${item.title}`)} data-testid={`button-save-opportunity-${item.id}`}>Save opportunity <Check size={14} /></button></div></div></article>)}</div>
+       <div className="space-y-4">{items.map((item, index) => <article key={item.id} className={`surface surface-hover stagger-in delay-${Math.min(index + 1, 4)} p-5 md:p-7`} data-testid={`card-opportunity-${item.id}`}><div className="flex flex-col justify-between gap-4 md:flex-row"><div className="max-w-3xl"><div className="mb-3 flex flex-wrap gap-2"><span className="badge badge-cool">{item.type}</span><span className="badge badge-ink">{item.tag}</span></div><h2 className="font-display text-2xl font-semibold">{item.title}</h2><p className="mt-1 font-mono text-[10px] uppercase tracking-wide text-[hsl(var(--muted-foreground))]">{item.organization}</p><p className="mt-4 text-sm leading-6 text-[hsl(var(--muted-foreground))]">{item.description}</p></div><div className="flex shrink-0 flex-col items-start gap-3 md:items-end"><div className="text-left md:text-right"><p className="eyebrow mb-1">Apply by</p><p className="font-display text-xl font-semibold">{formatDate(item.deadline)}</p></div><button type="button" className="action-btn action-primary" onClick={() => toggleSaved(item.id)} data-testid={`button-save-opportunity-${item.id}`}>{savedOpportunities.has(item.id) ? 'Saved' : 'Save opportunity'} <Check size={14} /></button></div></div></article>)}</div>
     </QueryState>
   </PageFrame>;
 }
