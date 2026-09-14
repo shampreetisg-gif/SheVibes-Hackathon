@@ -1,6 +1,7 @@
 import {
   boolean,
   integer,
+  jsonb,
   pgTable,
   serial,
   text,
@@ -35,6 +36,10 @@ export const clubs = pgTable("clubs", {
   members: integer("members").notNull(),
   nextMeeting: text("next_meeting").notNull(),
   accent: text("accent").notNull(),
+  avatar: text("avatar").notNull(),
+  upcomingEvent: jsonb("upcoming_event").notNull(),
+  announcements: jsonb("announcements").notNull(),
+  discussions: jsonb("discussions").notNull(),
 });
 
 export const campusEvents = pgTable("campus_events", {

@@ -5,27 +5,9 @@ import { defineConfig } from 'vite';
 
 import runtimeErrorOverlay from '@replit/vite-plugin-runtime-error-modal';
 
-const rawPort = process.env.PORT;
-
-if (!rawPort) {
-  throw new Error(
-    'PORT environment variable is required but was not provided.',
-  );
-}
-
-const port = Number(rawPort);
-
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
-
-const basePath = process.env.BASE_PATH;
-
-if (!basePath) {
-  throw new Error(
-    'BASE_PATH environment variable is required but was not provided.',
-  );
-}
+const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+const basePath = process.env.BASE_PATH || '/';
+const apiUrl = process.env.VITE_API_URL || 'http://localhost:5000';
 
 export default defineConfig({
   base: basePath,
@@ -69,6 +51,12 @@ export default defineConfig({
     strictPort: true,
     host: '0.0.0.0',
     allowedHosts: true,
+    proxy: {
+      '/api': {
+        target: apiUrl,
+        changeOrigin: true,
+      },
+    },
     fs: {
       strict: true,
     },

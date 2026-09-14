@@ -98,6 +98,26 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Club"
+  /clubs/{id}:
+    get:
+      operationId: getClub
+      tags: [campus]
+      summary: Get a club or society detail record
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Club detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Club"
+        "404":
+          description: Club not found
   /events:
     get:
       operationId: getEvents
@@ -261,7 +281,40 @@ components:
         members: { type: integer }
         nextMeeting: { type: string }
         accent: { type: string }
-      required: [id, name, category, description, members, nextMeeting, accent]
+        avatar: { type: string }
+        upcomingEvent:
+          $ref: "#/components/schemas/ClubEvent"
+        announcements:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClubAnnouncement"
+        discussions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClubDiscussion"
+      required: [id, name, category, description, members, nextMeeting, accent, avatar, upcomingEvent, announcements, discussions]
+    ClubEvent:
+      type: object
+      properties:
+        title: { type: string }
+        date: { type: string }
+        time: { type: string }
+        location: { type: string }
+      required: [title, date, time, location]
+    ClubAnnouncement:
+      type: object
+      properties:
+        title: { type: string }
+        summary: { type: string }
+        publishedAt: { type: string }
+      required: [title, summary, publishedAt]
+    ClubDiscussion:
+      type: object
+      properties:
+        author: { type: string }
+        body: { type: string }
+        postedAt: { type: string }
+      required: [author, body, postedAt]
     CampusEvent:
       type: object
       properties:

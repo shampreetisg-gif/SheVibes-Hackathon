@@ -5,6 +5,9 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { ClubAnnouncement } from './clubAnnouncement';
+import type { ClubDiscussion } from './clubDiscussion';
+import type { ClubEvent } from './clubEvent';
 
 export interface Club {
   id: number;
@@ -14,4 +17,8 @@ export interface Club {
   members: number;
   nextMeeting: string;
   accent: string;
+  avatar: string;
+  upcomingEvent: ClubEvent;
+  announcements: ClubAnnouncement[];
+  discussions: ClubDiscussion[];
 }

@@ -109,9 +109,61 @@ export const GetClubsResponseItem = zod.object({
   "description": zod.string(),
   "members": zod.number().int(),
   "nextMeeting": zod.string(),
-  "accent": zod.string()
+  "accent": zod.string(),
+  "avatar": zod.string(),
+  "upcomingEvent": zod.object({
+  "title": zod.string(),
+  "date": zod.string(),
+  "time": zod.string(),
+  "location": zod.string()
+}),
+  "announcements": zod.array(zod.object({
+  "title": zod.string(),
+  "summary": zod.string(),
+  "publishedAt": zod.string()
+})),
+  "discussions": zod.array(zod.object({
+  "author": zod.string(),
+  "body": zod.string(),
+  "postedAt": zod.string()
+}))
 })
 export const GetClubsResponse = zod.array(GetClubsResponseItem)
+
+
+/**
+ * @summary Get a club or society detail record
+ */
+export const GetClubParams = zod.object({
+  "id": zod.coerce.number().int()
+})
+
+export const GetClubResponse = zod.object({
+  "id": zod.number().int(),
+  "name": zod.string(),
+  "category": zod.string(),
+  "description": zod.string(),
+  "members": zod.number().int(),
+  "nextMeeting": zod.string(),
+  "accent": zod.string(),
+  "avatar": zod.string(),
+  "upcomingEvent": zod.object({
+  "title": zod.string(),
+  "date": zod.string(),
+  "time": zod.string(),
+  "location": zod.string()
+}),
+  "announcements": zod.array(zod.object({
+  "title": zod.string(),
+  "summary": zod.string(),
+  "publishedAt": zod.string()
+})),
+  "discussions": zod.array(zod.object({
+  "author": zod.string(),
+  "body": zod.string(),
+  "postedAt": zod.string()
+}))
+})
 
 
 /**

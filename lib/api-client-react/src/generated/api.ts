@@ -466,6 +466,83 @@ export function useGetClubs<TData = Awaited<ReturnType<typeof getClubs>>, TError
 
 
 
+export const getGetClubUrl = (id: number,) => {
+
+
+
+
+  return `/api/clubs/${id}`
+}
+
+/**
+ * @summary Get a club or society detail record
+ */
+export const getClub = async (id: number, options?: Parameters<typeof customFetch>[1]): Promise<Club> => {
+
+  return customFetch<Club>(getGetClubUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetClubQueryKey = (id: number,) => {
+    return [
+    `/api/clubs/${id}`
+    ] as const;
+    }
+
+
+export const getGetClubQueryOptions = <TData = Awaited<ReturnType<typeof getClub>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getClub>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetClubQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getClub>>> = ({ signal }) => getClub(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getClub>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetClubQueryResult = NonNullable<Awaited<ReturnType<typeof getClub>>>
+export type GetClubQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get a club or society detail record
+ */
+
+export function useGetClub<TData = Awaited<ReturnType<typeof getClub>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getClub>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetClubQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getGetEventsUrl = () => {
 
 

@@ -77,6 +77,25 @@ export interface Dashboard {
   deadlines: Deadline[];
 }
 
+export interface ClubEvent {
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+}
+
+export interface ClubAnnouncement {
+  title: string;
+  summary: string;
+  publishedAt: string;
+}
+
+export interface ClubDiscussion {
+  author: string;
+  body: string;
+  postedAt: string;
+}
+
 export interface Club {
   id: number;
   name: string;
@@ -85,6 +104,10 @@ export interface Club {
   members: number;
   nextMeeting: string;
   accent: string;
+  avatar: string;
+  upcomingEvent: ClubEvent;
+  announcements: ClubAnnouncement[];
+  discussions: ClubDiscussion[];
 }
 
 export interface Opportunity {
